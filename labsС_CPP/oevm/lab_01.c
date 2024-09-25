@@ -157,7 +157,6 @@ void mirrorLD(long double input, int groupSize, int msbPosition)
     printf("(2) ");
     output(temp.ll);
     binaryToDecimal((char *)&temp.ll);
-    printf("(10) %llu\n", temp.ll);
 }
 
 int main()
