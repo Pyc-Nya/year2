@@ -89,8 +89,6 @@ void mirrorChar(unsigned int input, int groupSize, int msbPosition)
  * LONG DOUBLE START
  *************************************************/
 
-#include <math.h>
-
 long double binaryToDecimalLD(u_int64_t exponent, u_int64_t mantisa)
 {
     int exp = 0;

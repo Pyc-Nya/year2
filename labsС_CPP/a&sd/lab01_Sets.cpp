@@ -141,7 +141,7 @@ namespace options
      ******************************************************************************/
     bool ArrContains(char *arr, char el)
     {
-        uint64_t len = lenArr(arr);
+        static uint64_t len = lenArr(arr);
         for (uint64_t i = 0; i < len; i++)
         {
             if (arr[i] == el)
@@ -176,10 +176,10 @@ namespace options
      ******************************************************************************/
     void intersectArr(char *A, char *B, char *C, char *result)
     {
-        uint64_t lenA = lenArr(A);
-        uint64_t lenB = lenArr(B);
-        uint64_t lenC = lenArr(C);
-        uint64_t lenR = lenArr(result);
+        static uint64_t lenA = lenArr(A);
+        static uint64_t lenB = lenArr(B);
+        static uint64_t lenC = lenArr(C);
+        static uint64_t lenR = lenArr(result);
 
         for (uint64_t i = 0; i < lenA; i++)
         {
@@ -205,8 +205,8 @@ namespace options
      ******************************************************************************/
     void unionArr(char *A, char *result)
     {
-        uint64_t lenA = lenArr(A);
-        uint64_t lenR = lenArr(result);
+        static uint64_t lenA = lenArr(A);
+        static uint64_t lenR = lenArr(result);
 
         for (uint64_t i = 0; i < lenA; i++)
         {
