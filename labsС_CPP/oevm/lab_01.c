@@ -93,13 +93,13 @@ long double binaryToDecimalLD(u_int64_t exponent, u_int64_t mantisa)
 {
     int exp = 0;
     for (int i = 0; i < 11; i++)
-    { // 11 бит для экспоненты в формате IEEE 754
+    { 
         exp = exp * 2 + ((exponent >> (10 - i)) & 1);
     }
 
     long double mant = 0;
     for (int i = 0; i < 52; i++)
-    { // 52 бита для мантиссы в формате IEEE 754
+    { 
         mant += ((mantisa >> (51 - i)) & 1) * pow(2, -i - 1);
     }
 
@@ -171,7 +171,7 @@ void mirrorLD(long double input, int groupSize, int msbPosition)
 
     temp.ld = input;
 
-    // создаем маску для извлечения группы разрядов 0100000000101110110000000000000000000000000000000000000000000000
+    // создаем маску для извлечения группы разрядов 
     mask = ((1ULL << groupSize) - 1) << (msbPosition - groupSize + 1);
 
     puts("\n/**************************__SHIFTS__***************************");
@@ -197,14 +197,7 @@ void mirrorLD(long double input, int groupSize, int msbPosition)
     outputL(mirrorGroup);
     puts("\n***************************************************************/\n");
 
-    printf("Result before mirroring: (2) ");
-    outputL(temp.ll);
-    printf(" : (10) %Lf\n", temp.ld);
-    printf("Result after  mirroring: (2) ");
     res.ll = (temp.ll & ~mask) | mirrorGroup;
-    outputL((temp.ll & ~mask) | mirrorGroup);
-    printf("\n");
-    printSEM(res);
 
     for (int i = 11 - 1; i > -1; i--)
     {
@@ -216,7 +209,13 @@ void mirrorLD(long double input, int groupSize, int msbPosition)
         mant = (mant << 1) | (res.parts.mantisa >> i & 1);
     }
 
-    printf("(10) %.100Lf\n", binaryToDecimalLD(exp, mant));
+    printf("Result before mirroring: (2) ");
+    outputL(temp.ll);
+    printf(" : (10) %Lf\n", temp.ld);
+    printf("Result after  mirroring: (2) ");
+    outputL((temp.ll & ~mask) | mirrorGroup);
+    printf(" : (10) %.50Lf\n", binaryToDecimalLD(exp, mant));
+    printSEM(res);
 }
 
 /*************************************************
