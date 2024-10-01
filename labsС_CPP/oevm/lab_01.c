@@ -223,6 +223,10 @@ void mirrorLD(long double input, int groupSize, int msbPosition)
  * LONG DOUBLE END
  *************************************************/
 
+/*************************************************
+ * LONG DOUBLE END
+ *************************************************/
+
 int main()
 {
     char choice = 'l';
