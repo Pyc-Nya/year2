@@ -1,47 +1,42 @@
 #include <stdio.h>
 #include <string.h>
-#include <locale.h>
+#include <math.h>
 
-typedef union
-{
-    unsigned long long ll;
-    long double ld;
-} type;
-
-typedef union
+union Data
 {
     long double ld;
+    u_int64_t ll;
     struct
     {
-        unsigned long long mantisa : 52;
-        unsigned long long exponent : 11;
-        unsigned long long sign : 1;
+        u_int64_t mantisa : 52;
+        u_int64_t exponent : 11;
+        u_int64_t sign : 1;
     } parts;
-} longer;
+};
 
-int binaryToDecimal(char *binary)
+/*************************************************
+ * CHAR START
+ *************************************************/
+
+int binaryToDecimalInt(int binary)
 {
     int decimal = 0;
     int base = 1;
-    int len = strlen(binary);
 
-    for (int i = len - 1; i >= 0; i--)
+    while (binary > 0)
     {
-        if (binary[i] == '1')
-        {
-            decimal += base;
-        }
+        decimal += (binary & 1) * base;
+        binary >>= 1;
         base *= 2;
     }
 
     return decimal;
 }
 
-void output(unsigned long long x)
+void outputCh(int x)
 {
-    int i;
-    for (i = 8 * sizeof(x) - 1; i > -1; i--)
-        printf("%llu", x >> i & 1);
+    for (int i = 8 - 1; i > -1; i--)
+        printf("%d", x >> i & 1);
     printf("\n");
 }
 
@@ -57,46 +52,11 @@ void processChar(char input)
     printf("\n");
 }
 
-void processLD(long double input)
-{
-    type res;
-
-    {
-        res.ld = input;
-        for (int i = 8 * sizeof(res.ll) - 1; i > -1; i--)
-            printf("%llu", res.ll >> i & 1);
-        printf("\n");
-    }
-}
-
-void printSEM(longer output)
-{
-    printf("sign : ");
-    for (int i = 0; i > -1; i--)
-    {
-        printf("%d", output.parts.sign >> i & 1);
-    }
-    printf(" (2) : %d (10)\n", output.parts.sign);
-
-    printf("exponent : ");
-    for (int i = 11 - 1; i > -1; i--)
-    {
-        printf("%d", output.parts.exponent >> i & 1);
-    }
-    printf(" (2) : %d (10)\n", output.parts.exponent);
-
-    printf("mantisa : ");
-    for (int i = 52 - 1; i > -1; i--)
-    {
-        printf("%llu", output.parts.mantisa >> i & 1);
-    }
-    printf(" (2) : %llu (10)\n", output.parts.mantisa);
-}
-
 void mirrorChar(unsigned int input, int groupSize, int msbPosition)
 {
-    int mirrored = 0;
+    int mirroredGroup = 0;
     int mask = 0, group = 0;
+    int dec;
 
     // создаем маску для извлечения группы разрядов
     mask = ((1 << groupSize) - 1) << (msbPosition - groupSize + 1);
@@ -107,87 +67,190 @@ void mirrorChar(unsigned int input, int groupSize, int msbPosition)
     // отражаем группу разрядов
     for (int i = 0; i < groupSize; i++)
     {
-        mirrored = (mirrored << 1) | (group & 1);
+        mirroredGroup = (mirroredGroup << 1) | (group & 1);
         group >>= 1;
     }
 
     // сдвигаем отраженную группу в нужное положение
-    mirrored = mirrored << (msbPosition - groupSize + 1);
+    mirroredGroup = mirroredGroup << (msbPosition - groupSize + 1);
 
-    // очищаем биты в input перед записью отраженной группы
-    input = input & ~(mask);
-
-    // записываем отраженную группу обратно в двоичное представление символа 
-    input = input | mirrored;
-
-    printf("Результат зеркальной перестановки: \n");
+    printf("Result of mirroring: \n");
     printf("(2) ");
-    processChar(input);
-    binaryToDecimal((char *)&input);
-    printf("(10) %u\n", input);
+    outputCh((input & ~mask) | mirroredGroup);
+    dec = binaryToDecimalInt((input & ~mask) | mirroredGroup);
+    printf("(10) %d\n", dec);
+}
+
+/*************************************************
+ * CHAR END
+ *************************************************/
+
+/*************************************************
+ * LONG DOUBLE START
+ *************************************************/
+
+#include <math.h>
+
+long double binaryToDecimalLD(u_int64_t exponent, u_int64_t mantisa)
+{
+    int exp = 0;
+    for (int i = 0; i < 11; i++)
+    { // 11 бит для экспоненты в формате IEEE 754
+        exp = exp * 2 + ((exponent >> (10 - i)) & 1);
+    }
+
+    long double mant = 0;
+    for (int i = 0; i < 52; i++)
+    { // 52 бита для мантиссы в формате IEEE 754
+        mant += ((mantisa >> (51 - i)) & 1) * pow(2, -i - 1);
+    }
+
+    long double result = pow(2, exp - 1023) * (1 + mant);
+
+    return result;
+}
+
+void outputL(u_int64_t x)
+{
+    int cnt = 0;
+    for (int i = 8 * sizeof(x) - 1; i > -1; i--)
+    {
+        if ((cnt % 8) != 0)
+        {
+            printf("%llu", x >> i & 1);
+        }
+        else
+        {
+            printf("%llu ", x >> i & 1);
+        }
+        cnt++;
+    }
+}
+void processLD(long double input)
+{
+    union Data res;
+
+    res.ld = input;
+
+    {
+        for (int i = 8 * sizeof(long double) - 1; i > -1; i--)
+        {
+            printf("%llu", res.ll >> i & 1);
+        }
+        printf("\n");
+    }
+}
+
+void printSEM(union Data output)
+{
+    puts("\n/************************__COMPONENTS__*************************");
+    printf("* sign : ");
+    for (int i = 0; i > -1; i--)
+    {
+        printf("%d", output.parts.sign >> i & 1);
+    }
+
+    printf("\n* exponent : ");
+    for (int i = 11 - 1; i > -1; i--)
+    {
+        printf("%d", output.parts.exponent >> i & 1);
+    }
+    printf("\n* mantisa : ");
+    for (int i = 52 - 1; i > -1; i--)
+    {
+        printf("%llu", output.parts.mantisa >> i & 1);
+    }
+    puts("\n***************************************************************/\n");
 }
 
 void mirrorLD(long double input, int groupSize, int msbPosition)
 {
-    type temp;
-    u_int64_t mask = 0, group = 0, highBits = 0;
+    union Data temp;
+    union Data res;
+    u_int64_t mask = 0, group = 0, mirrorGroup = 0;
+    u_int64_t mant = 0, exp = 0;
+    double dec;
 
     temp.ld = input;
 
-    // создаем маску для извлечения группы разрядов
-    mask = ((1 << (u_int64_t)groupSize) - 1) << ((u_int64_t)msbPosition - (u_int64_t)groupSize + 1);
+    // создаем маску для извлечения группы разрядов 0100000000101110110000000000000000000000000000000000000000000000
+    mask = ((1ULL << groupSize) - 1) << (msbPosition - groupSize + 1);
+
+    puts("\n/**************************__SHIFTS__***************************");
+    printf("Mask : ");
+    outputL(mask);
+    printf("\nGroup : ");
 
     // извлекаем группу разрядов
     group = (temp.ll & mask) >> (msbPosition - groupSize + 1);
-
-    // сохраняем старшие разряды
-    highBits = temp.ll & ~(mask);
+    outputL(group);
 
     // отражаем группу разрядов
-    for (int i = 0; i < groupSize; i++)
+    for (int i = 0; i < groupSize; ++i)
     {
-        temp.ll = (temp.ll << 1) | (group & 1);
+        mirrorGroup = (mirrorGroup << 1) | (group & 1);
         group >>= 1;
     }
 
-    // объединяем старшие разряды с отраженной группой разрядов
-    temp.ll = highBits | (temp.ll << (msbPosition - groupSize + 1));
+    // сдвигаем отраженную группу в нужное положение
+    mirrorGroup = mirrorGroup << (msbPosition - groupSize + 1);
 
-    printf("Результат зеркальной перестановки: \n");
-    printf("(2) ");
-    output(temp.ll);
-    binaryToDecimal((char *)&temp.ll);
-    printf("(10) %llu\n", temp.ll);
+    printf("\nMirrored group : ");
+    outputL(mirrorGroup);
+    puts("\n***************************************************************/\n");
+
+    printf("Result before mirroring: (2) ");
+    outputL(temp.ll);
+    printf(" : (10) %Lf\n", temp.ld);
+    printf("Result after  mirroring: (2) ");
+    res.ll = (temp.ll & ~mask) | mirrorGroup;
+    outputL((temp.ll & ~mask) | mirrorGroup);
+    printf("\n");
+    printSEM(res);
+
+    for (int i = 11 - 1; i > -1; i--)
+    {
+        exp = (exp << 1) | (res.parts.exponent >> i & 1);
+    }
+
+    for (int i = 52 - 1; i > -1; i--)
+    {
+        mant = (mant << 1) | (res.parts.mantisa >> i & 1);
+    }
+
+    printf("(10) %.100Lf\n", binaryToDecimalLD(exp, mant));
 }
+
+/*************************************************
+ * LONG DOUBLE END
+ *************************************************/
 
 int main()
 {
-    setlocale(LC_ALL, "rus");
-    char choice;
+    char choice = 'l';
     char inputChar;
     char temp;
     int binChar;
     int groupSize;
     int msbPosition;
-    long double inputDouble;
-    longer inputLD;
+    union Data data;
 
     do
     {
         temp = 'n';
-        printf("Выберите тип данных: с - char, ld - long double\n");
+        printf("Choose data type: с - char, ld - long double\n");
         scanf("%c", &choice);
         if ((choice == 'c') || (choice == 'C'))
         {
             while (getchar() != '\n')
                 ;
-            printf("Введите символ:\n");
+            printf("Enter your char:\n");
             scanf("%c", &inputChar);
-            printf("Результат: ");
+            printf("\nChar binary result: ");
             processChar(inputChar);
-            puts("Введите размер группы для перестановки:");
+            puts("Enter group size for mirroring:");
             scanf("%d", &groupSize);
-            puts("Введите номер страшего разряда:");
+            puts("Enter the number of the highest digit of the group (right -> left):");
             scanf("%d", &msbPosition);
             mirrorChar(inputChar, groupSize, msbPosition);
         }
@@ -195,21 +258,22 @@ int main()
         {
             while (getchar() != '\n')
                 ;
-            printf("Введите число:\n");
-            scanf("%Lf", &inputDouble);
-            printf("Результат: ");
-            processLD(inputDouble);
-            inputLD.ld = inputDouble;
-            printSEM(inputLD);
-            puts("Введите размер группы для перестановки:");
+            printf("Enter your number:\n");
+            scanf("%LG", &data.ld);
+            printf("\nLong double binary result: ");
+            processLD(data.ld);
+            printSEM(data);
+            puts("Enter group size for mirroring:");
             scanf("%d", &groupSize);
-            puts("Введите номер страшего разряда:");
+            while (getchar() != '\n')
+                ;
+            puts("Enter the number of the highest digit of the group (right -> left):");
             scanf("%d", &msbPosition);
-            mirrorLD(inputDouble, groupSize, msbPosition);
+            mirrorLD(data.ld, groupSize, msbPosition);
         }
         while (getchar() != '\n')
             ;
-        puts("Хотите продолжить? (y/n)");
+        puts("Do you want to continue? (y/n)");
         scanf("%c", &temp);
     } while (temp != 'n');
 
