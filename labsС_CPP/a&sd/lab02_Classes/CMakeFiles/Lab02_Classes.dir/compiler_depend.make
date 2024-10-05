@@ -957,7 +957,7 @@ CMakeFiles/Lab02_Classes.dir/main.cpp.o: main.cpp \
   /Library/Developer/CommandLineTools/usr/lib/clang/16/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/16/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/16/include/stdint.h \
-  lib.hpp
+  lib_struct.hpp
 
 
 /Library/Developer/CommandLineTools/usr/lib/clang/16/include/stdint.h:
@@ -1095,6 +1095,8 @@ CMakeFiles/Lab02_Classes.dir/main.cpp.o: main.cpp \
 /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/sys/_pthread/_pthread_rwlock_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/sys/_pthread/_pthread_once_t.h:
+
+lib_struct.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/sys/_pthread/_pthread_mutexattr_t.h:
 
@@ -1893,8 +1895,6 @@ CMakeFiles/Lab02_Classes.dir/main.cpp.o: main.cpp \
 /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/c++/v1/__functional/function.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/c++/v1/__algorithm/copy_n.h:
-
-lib.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/c++/v1/__config:
 

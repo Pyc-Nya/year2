@@ -955,4 +955,4 @@ CMakeFiles/Lab02_Classes.dir/main.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/c++/v1/__format/formatter_tuple.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/c++/v1/print \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk/usr/include/unistd.h \
-  /Users/odious/Documents/prog/labs/labsС_CPP/a&sd/lab02_Classes/lib.hpp
+  /Users/odious/Documents/prog/labs/labsС_CPP/a&sd/lab02_Classes/lib_struct.hpp
