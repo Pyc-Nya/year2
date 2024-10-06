@@ -42,12 +42,9 @@ void outputCh(int x)
 
 void processChar(char input)
 {
-    unsigned int bit;
-
     for (int i = 0; i < 8; i++)
     {
-        bit = ((input >> (8 - i - 1)) & 1);
-        printf("%d", bit);
+        printf("%d", ((input >> (8 - i - 1)) & 1));
     }
     printf("\n");
 }
@@ -89,22 +86,26 @@ void mirrorChar(unsigned int input, int groupSize, int msbPosition)
  * LONG DOUBLE START
  *************************************************/
 
-long double binaryToDecimalLD(u_int64_t exponent, u_int64_t mantisa)
+long double binaryToDecimalLD(u_int64_t exponent, u_int64_t mantisa, u_int64_t sign)
 {
     int exp = 0;
     for (int i = 0; i < 11; i++)
-    { 
+    {
         exp = exp * 2 + ((exponent >> (10 - i)) & 1);
     }
 
     long double mant = 0;
     for (int i = 0; i < 52; i++)
-    { 
+    {
         mant += ((mantisa >> (51 - i)) & 1) * pow(2, -i - 1);
     }
 
     long double result = pow(2, exp - 1023) * (1 + mant);
 
+    if (sign == 1)
+    {
+        result = -result;
+    }
     return result;
 }
 
@@ -171,7 +172,7 @@ void mirrorLD(long double input, int groupSize, int msbPosition)
 
     temp.ld = input;
 
-    // создаем маску для извлечения группы разрядов 
+    // создаем маску для извлечения группы разрядов
     mask = ((1ULL << groupSize) - 1) << (msbPosition - groupSize + 1);
 
     puts("\n/**************************__SHIFTS__***************************");
@@ -214,7 +215,7 @@ void mirrorLD(long double input, int groupSize, int msbPosition)
     printf(" : (10) %Lf\n", temp.ld);
     printf("Result after  mirroring: (2) ");
     outputL((temp.ll & ~mask) | mirrorGroup);
-    printf(" : (10) %.50Lf\n", binaryToDecimalLD(exp, mant));
+    printf(" : (10) %.50Lf\n", binaryToDecimalLD(exp, mant, res.parts.sign));
     printSEM(res);
 }
 
