@@ -1,3 +1,0 @@
-/Users/odious/Documents/prog/labs/labsС_CPP/a&sd/lab02_Classes/build/CMakeFiles/Lab02_Classes.dir
-/Users/odious/Documents/prog/labs/labsС_CPP/a&sd/lab02_Classes/build/CMakeFiles/edit_cache.dir
-/Users/odious/Documents/prog/labs/labsС_CPP/a&sd/lab02_Classes/build/CMakeFiles/rebuild_cache.dir

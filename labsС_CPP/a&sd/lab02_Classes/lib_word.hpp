@@ -1,3 +1,14 @@
+/******************************************************************************
+ * @file lib_word.hpp
+ * @brief [Set and Classes lab 2. Class for word set]
+ * @details
+ * Universum - C++ Operation Signs
+ * A set containing operations present in A, also simultaneously in B and C, and all operations from D
+ *
+ * plurality:  (A ∧ B ∧ C) ∨ D
+ *
+ * @author [Kostenko Aleksey:Voronin Mark]
+ *******************************************************************************/
 #include <iostream>
 #include <cstdlib>
 #include <string.h>
