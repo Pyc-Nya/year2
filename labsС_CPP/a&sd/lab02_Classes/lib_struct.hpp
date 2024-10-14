@@ -175,26 +175,6 @@ public:
         }
     }
 
-    Set &operator=(const Set &other)
-    {
-        if (this != &other)
-        {
-            head = nullptr;
-            Node *temp = other.head;
-            while (temp != nullptr)
-            {
-                addElement(temp->data);
-                temp = temp->next;
-            }
-        }
-        return *this;
-    }
-
-    Set(Set &&other) : tag('A' + cnt++), head(other.head)
-    {
-        other.head = nullptr;
-    }
-
     Set &operator=(Set &&other)
     {
         if (this != &other)

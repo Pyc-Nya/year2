@@ -132,7 +132,7 @@ void processLD(long double input)
     res.ld = input;
 
     {
-        for (int i = 8 * sizeof(long double) - 1; i > -1; i--)
+        for (int i = 8 * sizeof(u_int64_t) - 1; i > -1; i--)
         {
             printf("%llu", res.ll >> i & 1);
         }
@@ -215,7 +215,7 @@ void mirrorLD(long double input, int groupSize, int msbPosition)
     printf(" : (10) %Lf\n", temp.ld);
     printf("Result after  mirroring: (2) ");
     outputL((temp.ll & ~mask) | mirrorGroup);
-    printf(" : (10) %.50Lf\n", binaryToDecimalLD(exp, mant, res.parts.sign));
+    printf(" : (10) %.50Lf\n",binaryToDecimalLD(exp, mant, res.parts.sign));
     printSEM(res);
 }
 

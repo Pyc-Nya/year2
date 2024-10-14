@@ -17,19 +17,21 @@
 #define maxsize 13
 const char universe[] = "!%&*+-=/<>^|~"; // C++ operator signs for universe set
 
-// Class for bit array type
+// Class for bit array
 class Set
 {
 private:
     static int cnt;
     bool *data;
-    int size;
     char tag;
 
 public:
-    Set() : size(0), tag('A' + cnt++), data(new bool[maxsize + 1]) { data[0] = false; }
+    Set() : tag('A' + cnt++), data(new bool[maxsize + 1])
+    {
+        data[0] = false;
+    }
 
-    Set(char) : tag('A' + cnt++), size(maxsize), data(new bool[maxsize + 1])
+    Set(bool) : tag('A' + cnt++), data(new bool[maxsize + 1])
     {
         for (int i = 0; i < maxsize; ++i)
         {
@@ -37,8 +39,12 @@ public:
             {
                 data[i] = true;
             }
+            else
+            {
+                data[i] = false;
+            }
         }
-        data[size] = false;
+        data[maxsize] = false;
     }
 
     ~Set()
@@ -46,135 +52,77 @@ public:
         delete[] data;
     }
 
-    int len() { return size; }
-
     void printSet()
     {
         std::cout << tag << ": [";
+        bool isFirst = true;
         for (int i = 0; i < maxsize; ++i)
         {
-            if (data[i] && i < size)
+            if (data[i])
             {
-                std::cout << universe[i] << ", ";
-            }
-            else
-            {
-                std::cout << universe[i] << "]";
+                if (!isFirst)
+                {
+                    std::cout << ", ";
+                }
+                std::cout << universe[i];
+                isFirst = false;
             }
         }
+        std::cout << "]" << std::endl;
     }
 
     Set &operator&=(const Set &other)
     {
         Set res(*this);
-        
+
+        for (int i = 0; i < maxsize; ++i)
+        {
+            res.data[i] = res.data[i] && other.data[i];
+        }
+
+        data[maxsize] = false;
+        return *this;
+    }
+
+    Set &operator|=(const Set &other)
+    {
+        Set res(*this);
+
+        for (int i = 0; i < maxsize; ++i)
+        {
+            res.data[i] = res.data[i] || other.data[i];
+        }
+
+        data[maxsize] = false;
+        return *this;
+    }
+
+    Set operator&(const Set &other) const
+    {
+        Set res(*this);
+        return (res &= other);
+    }
+
+    Set operator|(const Set &other) const
+    {
+        Set res(*this);
+        return (res |= other);
+    }
+
+    Set(const Set &other) : tag('A' + cnt++), data(new bool[maxsize + 1])
+    {
+        std::copy(other.data, other.data + maxsize + 1, data);
+    }
+
+    Set &operator=(Set &&other)
+    {
+        if (this != &other)
+        {
+            delete[] data;
+            data = other.data;
+            other.data = nullptr;
+        }
+
+        return *this;
     }
 };
-
-// // Класс для структуры
-// class Structure
-// {
-// private:
-//     struct Node
-//     {
-//         char data;
-//         Node *next;
-//     };
-
-//     Node *head;
-
-// public:
-//     Structure()
-//     {
-//         head = nullptr;
-//     }
-
-//     ~Structure()
-//     {
-//         while (head != nullptr)
-//         {
-//             Node *temp = head;
-//             head = head->next;
-//             delete temp;
-//         }
-//     }
-
-//     void addElement(char data)
-//     {
-//         Node *newNode = new Node();
-//         newNode->data = data;
-//         newNode->next = head;
-//         head = newNode;
-//     }
-
-//     void printStructure()
-//     {
-//         Node *temp = head;
-//         while (temp != nullptr)
-//         {
-//             std::cout << temp->data << " ";
-//             temp = temp->next;
-//         }
-//         std::cout << std::endl;
-//     }
-// };
-
-// // Класс для битового массива
-// class BitArray
-// {
-// private:
-//     bool *data;
-//     int size;
-
-// public:
-//     BitArray(int size)
-//     {
-//         this->size = size;
-//         data = new bool[size];
-//     }
-
-//     ~BitArray()
-//     {
-//         delete[] data;
-//     }
-
-//     void fillBitArray(bool *arr)
-//     {
-//         for (int i = 0; i < size; i++)
-//         {
-//             data[i] = arr[i];
-//         }
-//     }
-
-//     void printBitArray()
-//     {
-//         for (int i = 0; i < size; i++)
-//         {
-//             std::cout << data[i] << " ";
-//         }
-//         std::cout << std::endl;
-//     }
-// };
-
-// // Класс для машинного слова
-// class MachineWord
-// {
-// private:
-//     unsigned short int data;
-
-// public:
-//     MachineWord()
-//     {
-//         data = 0;
-//     }
-
-//     void fillMachineWord(unsigned short int value)
-//     {
-//         data = value;
-//     }
-
-//     void printMachineWord()
-//     {
-//         std::cout << data << std::endl;
-//     }
-// };

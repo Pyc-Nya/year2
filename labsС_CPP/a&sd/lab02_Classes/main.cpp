@@ -13,14 +13,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-//#include "lib_array.hpp"
+#include "lib_array.hpp"
 //#include "lib_struct.hpp"
-#include "lib_bitset.hpp"
+//#include "lib_bitset.hpp"
+//#include "lib_word.hpp"
 
 #define maxsize 13
 
 int Set::cnt = 0;
 const long q0 = 100000;
+const int cycleRepeat = 10000000;
 
 int main()
 {
@@ -38,28 +40,17 @@ int main()
     E = (A & B & C) | D;
     E.printSet();
 
+    clock_t startTime = clock();
+
+    for (int i = 0; i < cycleRepeat; ++i)
+    {
+        E = (A & B & C) | D;
+    }
+
+    clock_t endTime = clock();
+
+    double duration = static_cast<double>(endTime - startTime) / CLOCKS_PER_SEC;
+    std::cout << "Time for 10000000" << " operations: " << duration << " seconds." << std::endl;
+
     return 0;
 }
-
-// int main()
-// {
-//     srand(time(nullptr));
-//     printf("Sets:");
-//     Set<char> A('A'), B('B'), C('C'), D('D'), E;
-
-//     clock_t begin = clock();
-
-//     for (int i = 0; i < q0; ++i)
-//     {
-//         E = (A & B & C) | D;
-//     }
-
-//     clock_t end = clock();
-
-//     printf("\n\nResult:");
-
-//     E.print();
-
-//     std::cout << "Time: " << (double)(end - begin) / CLOCKS_PER_SEC << "s\n";
-//     return 0;
-// }
