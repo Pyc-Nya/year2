@@ -1,0 +1,14 @@
+Value,Parent,Position
+A,null,null
+B,A,left
+C,A,middle
+D,A,right
+L,D,left
+E,B,left
+F,B,middle
+G,B,right
+H,C,middle
+I,D,right
+J,H,left
+K,H,middle
+S,H,right

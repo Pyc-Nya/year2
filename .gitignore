@@ -1,0 +1,12 @@
+*.exe
+*.7z
+*.bkp
+**/.vscode
+**/.idea
+main
+graph*
+/**/output
+*.iml
+*bFile*
+1*b*
+!graphs
