@@ -75,7 +75,7 @@ int main() {
 
     cout << "Размер файла: " << fileSize << " байт" << endl;
 
-    for (int currentChunk = mb * 2; currentChunk <= mb10; currentChunk += mb) {
+    for (int currentChunk = mb; currentChunk <= mb10; currentChunk += mb) {
         for (int j = 0; j <= 4; j++) {
             chunk = currentChunk;
             operationsCount = (1 << j);  

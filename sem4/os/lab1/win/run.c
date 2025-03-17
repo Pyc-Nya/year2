@@ -2,8 +2,8 @@
 
 int main() {
   system("cls");
-  system("gcc .\\test.c -o test.exe");
-  system(".\\test.exe");
+  system(" gcc main.c -o main.exe -municode");
+  system(".\\main.exe");
 
   return 0;
 }
