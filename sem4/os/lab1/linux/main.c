@@ -75,12 +75,12 @@ int main() {
 
     cout << "Размер файла: " << fileSize << " байт" << endl;
 
-    for (int currentChunk = mb10; currentChunk <= mb10; currentChunk += mb) {
-        for (int j = 4; j <= 4; j++) {
+    for (int currentChunk = mb * 2; currentChunk <= mb10; currentChunk += mb) {
+        for (int j = 0; j <= 4; j++) {
             chunk = currentChunk;
             operationsCount = (1 << j);  
 
-            for (int iteration = 0; iteration < 1; iteration++) {
+            for (int iteration = 0; iteration < 5; iteration++) {
                 cout << "\n=== Размер кластера: " << chunk
                      << ", операций: " << operationsCount
                      << ", повторение #" << (iteration+1) << " ===\n";
@@ -89,8 +89,8 @@ int main() {
 
                 auto startTime = high_resolution_clock::now();
 
-                fileReadHandler = open(pathRead.c_str(), O_RDONLY | __O_DIRECT | O_NONBLOCK, 0666);
-                fileWriteHandler = open(pathWrite.c_str(), O_CREAT | __O_DIRECT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0666);
+                fileReadHandler = open(pathRead.c_str(), O_RDONLY  | O_NONBLOCK, 0666);
+                fileWriteHandler = open(pathWrite.c_str(), O_CREAT  | O_WRONLY | O_TRUNC | O_NONBLOCK, 0666);
 
                 if (fileReadHandler == -1 || fileWriteHandler == -1) {
                     cerr << "Ошибка: Невозможно открыть один из файлов (чтения или записи)!" << endl;
@@ -135,6 +135,7 @@ int main() {
                     }
                 }
                 freeMemory(operations, operationsCount);
+                sleep(2);
             }
         }
     }
