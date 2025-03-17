@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Путь к лог-файлу
-file_path = r"C:\projects\year2\sem4\os\lab1\linux\lab.log"
+file_path = r"/home/pyc_nya/projects/vuz2/sem4/os/lab1/linux/lab.log"
 
 # Загрузка данных из файла.
 # Предполагается, что каждая строка лога имеет формат:
@@ -23,7 +23,7 @@ df["Duration"] = pd.to_numeric(df["Duration"], errors='coerce')
 df = df.dropna(subset=["File_Size", "Cluster_Size", "Operations_Count", "Duration"])
 
 # Создание директории для сохранения графиков
-output_dir = r"C:\projects\year2\sem4\os\lab1\linux\graphs2"
+output_dir = r"/home/pyc_nya/projects/vuz2/sem4/os/lab1/linux/graphs2"
 os.makedirs(output_dir, exist_ok=True)
 
 # Обработка данных для каждого уникального размера файла

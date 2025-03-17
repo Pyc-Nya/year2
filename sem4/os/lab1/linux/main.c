@@ -21,6 +21,11 @@
 using namespace std;
 using namespace std::chrono;
 
+#define kb4 4096
+#define kb16 16384
+#define mb 1048576
+#define mb10 10485760
+
 // Глобальные переменные
 int chunk;              // Текущий размер «кластера» для чтения/записи
 int fileReadHandler;
@@ -47,13 +52,13 @@ void await(struct AioOperation* operations, int count);
 int main() {
     struct stat fileStat;
     struct AioOperation* operations;
-    string pathRead, pathWrite;
+    string pathRead = "1g\0", pathWrite = "1gc\0";
 
-    cout << "Введите путь к копируемому файлу: ";
-    cin >> pathRead;
+    // cout << "Введите путь к копируемому файлу: ";
+    // cin >> pathRead;
 
-    cout << "Введите путь к файлу записи: ";
-    cin >> pathWrite;
+    // cout << "Введите путь к файлу записи: ";
+    // cin >> pathWrite;
 
     int tempFileHandler = open(pathRead.c_str(), O_RDONLY);
     if (tempFileHandler == -1) {
@@ -70,12 +75,12 @@ int main() {
 
     cout << "Размер файла: " << fileSize << " байт" << endl;
 
-    for (int currentChunk = 10485760; currentChunk <= 104857600; currentChunk += 10485760) {
-        for (int j = 0; j <= 4; j++) {
+    for (int currentChunk = mb10; currentChunk <= mb10; currentChunk += mb) {
+        for (int j = 4; j <= 4; j++) {
             chunk = currentChunk;
             operationsCount = (1 << j);  
 
-            for (int iteration = 0; iteration < 5; iteration++) {
+            for (int iteration = 0; iteration < 1; iteration++) {
                 cout << "\n=== Размер кластера: " << chunk
                      << ", операций: " << operationsCount
                      << ", повторение #" << (iteration+1) << " ===\n";
@@ -84,8 +89,8 @@ int main() {
 
                 auto startTime = high_resolution_clock::now();
 
-                fileReadHandler = open(pathRead.c_str(), O_RDONLY | O_NONBLOCK, 0666);
-                fileWriteHandler = open(pathWrite.c_str(), O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0666);
+                fileReadHandler = open(pathRead.c_str(), O_RDONLY | __O_DIRECT | O_NONBLOCK, 0666);
+                fileWriteHandler = open(pathWrite.c_str(), O_CREAT | __O_DIRECT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0666);
 
                 if (fileReadHandler == -1 || fileWriteHandler == -1) {
                     cerr << "Ошибка: Невозможно открыть один из файлов (чтения или записи)!" << endl;

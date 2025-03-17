@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Укажите путь к вашему файлу log
-file_path = r"C:\projects\year2\sem4\os\lab1\linux\lab.log"  # Путь к вашему файлу лога
+file_path = r"/home/pyc_nya/projects/vuz2/sem4/os/lab1/linux/lab.log"  # Путь к вашему файлу лога
 
 # Загрузка данных из файла
 df = pd.read_csv(file_path, sep=" ", skiprows=1, header=None, 
@@ -14,7 +14,7 @@ df = pd.read_csv(file_path, sep=" ", skiprows=1, header=None,
 file_sizes = df["File_Size"].unique()
 
 # Создание директории для сохранения графиков
-output_dir = r"C:\projects\year2\sem4\os\lab1\linux\graphs"
+output_dir = r"/home/pyc_nya/projects/vuz2/sem4/os/lab1/linux/graphs"
 os.makedirs(output_dir, exist_ok=True)
 
 # Максимальное количество кластерных размеров на одном графике
