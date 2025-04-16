@@ -13,11 +13,11 @@ constexpr int HEIGHT = 30;
 
 #define _USE_MATH_DEFINES
 
-// Интерфейс для фигур, поддерживающих поворот
+// Интерфейс для фигур, поддерживающих поворот (метод изменяет состояние фигуры)
 class IRotatable {
 public:
-    // Поворот фигуры на угол angle вокруг центра фигуры
-    virtual class Shape* rotate(double angle) const = 0;
+    // Поворот фигуры на угол angle вокруг центра фигуры (накопительный поворот)
+    virtual void rotate(double angle) = 0;
     virtual ~IRotatable() {}
 };
 
@@ -51,19 +51,17 @@ class Canvas;
 
 // Базовый класс для фигур с уникальным именем и операциями поворота и трансляции
 class Shape {
-    protected:
-        std::string name;
-    public:
-        Shape(const std::string& name) : name(name) {}
-        virtual void draw(Canvas &canvas) const = 0;
-        virtual Shape* rotate(double angle) const = 0;
-        virtual Shape* translate(int dx, int dy) const = 0;
-        std::string getName() const { return name; }
-        virtual std::string getInfo() const = 0;
-        // Новый метод для получения ограничивающего прямоугольника
-        virtual BoundingRect getBoundingRect() const = 0;
-        virtual ~Shape() = default;
-    };
+protected:
+    std::string name;
+public:
+    Shape(const std::string& name) : name(name) {}
+    virtual void draw(Canvas &canvas) const = 0;
+    virtual void translate(int dx, int dy) = 0;
+    std::string getName() const { return name; }
+    virtual std::string getInfo() const = 0;
+    virtual BoundingRect getBoundingRect() const = 0;
+    virtual ~Shape() = default;
+};
 
 // Класс холста для текстовой графики и хранения фигур
 class Canvas {
@@ -105,8 +103,6 @@ public:
         for (const auto &pair : shapes) {
              std::cout << pair.first << ": " << pair.second->getInfo() << "\n";
         }
-        std::cout << "Нажмите Enter для продолжения...";
-        std::cin.ignore();
     }
     
     // Отрисовка всех фигур: сначала очищается буфер, затем каждая фигура отрисовывается по своим координатам
@@ -141,23 +137,7 @@ public:
         shapes.erase(it);
     }
     
-    // Обновление фигуры (например, после перемещения или поворота)
-    void updateShape(Shape* newShape) {
-        auto it = shapes.find(newShape->getName());
-        if (it == shapes.end())
-            throw ShapeException("Фигура с таким именем не найдена.");
-        
-        // Проверка валидности ограничивающего прямоугольника
-        BoundingRect rect = newShape->getBoundingRect();
-        if (rect.x1 < 0 || rect.y1 < 0 || rect.x2 >= WIDTH || rect.y2 >= HEIGHT) {
-            throw ShapeException("Фигура выходит за границы холста.");
-        }
-        
-        delete it->second;
-        shapes[newShape->getName()] = newShape;
-    }
-    
-    // Публичный метод для получения фигуры по имени
+    // Получение фигуры по имени
     Shape* getShape(const std::string &name) const {
         auto it = shapes.find(name);
         if (it == shapes.end())
@@ -172,9 +152,11 @@ public:
 class Line : public Shape, public IRotatable {
 public:
     int x1, y1, x2, y2;
+    double angle; // накопленный угол поворота
+
     // Конструктор принимает имя, координаты и опциональный угол поворота
     Line(const std::string& name, int x1, int y1, int x2, int y2, double angle = 0)
-        : Shape(name), x1(x1), y1(y1), x2(x2), y2(y2)
+        : Shape(name), x1(x1), y1(y1), x2(x2), y2(y2), angle(0) // инициализируем angle нулём
     {
         if (x1 < 0 || x1 >= WIDTH || y1 < 0 || y1 >= HEIGHT ||
             x2 < 0 || x2 >= WIDTH || y2 < 0 || y2 >= HEIGHT)
@@ -184,14 +166,16 @@ public:
             int pivotX = (x1 + x2) / 2, pivotY = (y1 + y2) / 2;
             auto np1 = rotatePoint(x1, y1, pivotX, pivotY, angle);
             auto np2 = rotatePoint(x2, y2, pivotX, pivotY, angle);
-            this->x1 = np1.first; this->y1 = np1.second;
-            this->x2 = np2.first; this->y2 = np2.second;
+            x1 = np1.first; y1 = np1.second;
+            x2 = np2.first; y2 = np2.second;
+            this->angle = angle; // сохраняем поворот
         }
     }
 
     std::string getInfo() const override {
         std::ostringstream oss;
-        oss << "Line: (" << x1 << "," << y1 << ") - (" << x2 << "," << y2 << "), угол: 0";
+        oss << "Line: (" << x1 << "," << y1 << ") - (" 
+            << x2 << "," << y2 << "), угол: " << angle;
         return oss.str();
     }
     
@@ -217,17 +201,29 @@ public:
         return { minX, minY, maxX, maxY };
     }
     
-    // Поворот линии вокруг её центра
-    Shape* rotate(double angle) const override {
+    // Вращение линии вокруг её центра (in-place)
+    void rotate(double deltaAngle) override {
         int pivotX = (x1 + x2) / 2;
         int pivotY = (y1 + y2) / 2;
-        auto np1 = rotatePoint(x1, y1, pivotX, pivotY, angle);
-        auto np2 = rotatePoint(x2, y2, pivotX, pivotY, angle);
-        return new Line(name, np1.first, np1.second, np2.first, np2.second, 0);
+        auto np1 = rotatePoint(x1, y1, pivotX, pivotY, deltaAngle);
+        auto np2 = rotatePoint(x2, y2, pivotX, pivotY, deltaAngle);
+        if (np1.first < 0 || np1.first >= WIDTH || np1.second < 0 || np1.second >= HEIGHT ||
+            np2.first < 0 || np2.first >= WIDTH || np2.second < 0 || np2.second >= HEIGHT)
+            throw ShapeException("Line: поворот приводит к выходу за границы холста.");
+        x1 = np1.first;
+        y1 = np1.second;
+        x2 = np2.first;
+        y2 = np2.second;
+        angle += deltaAngle;
     }
     
-    Shape* translate(int dx, int dy) const override {
-        return new Line(name, x1 + dx, y1 + dy, x2 + dx, y2 + dy, 0);
+    // Перемещение линии на dx, dy (in-place)
+    void translate(int dx, int dy) override {
+        int newX1 = x1 + dx, newY1 = y1 + dy, newX2 = x2 + dx, newY2 = y2 + dy;
+        if (newX1 < 0 || newX1 >= WIDTH || newY1 < 0 || newY1 >= HEIGHT ||
+            newX2 < 0 || newX2 >= WIDTH || newY2 < 0 || newY2 >= HEIGHT)
+            throw ShapeException("Line: перевод приводит к выходу за границы холста.");
+        x1 = newX1; y1 = newY1; x2 = newX2; y2 = newY2;
     }
 };
 
@@ -257,16 +253,13 @@ public:
     }    
     
     void draw(Canvas &canvas) const override {
-        // Вычисляем вершины исходного прямоугольника
         std::vector<std::pair<int, int>> verts = { {orig_x1, orig_y1}, {orig_x2, orig_y1}, {orig_x2, orig_y2}, {orig_x1, orig_y2} };
         int centerX = (orig_x1 + orig_x2) / 2;
         int centerY = (orig_y1 + orig_y2) / 2;
-        // Если угол не равен нулю, поворачиваем вершины относительно центра
         if (angle != 0) {
             for (auto &p : verts)
                 p = rotatePoint(p.first, p.second, centerX, centerY, angle);
         }
-        // Отрисовка сторон как линий
         for (size_t i = 0; i < verts.size(); ++i) {
             auto [x1, y1] = verts[i];
             auto [x2, y2] = verts[(i + 1) % verts.size()];
@@ -274,15 +267,50 @@ public:
         }
     }
     
-    // Поворот прямоугольника: накопленный угол обновляется
-    Shape* rotate(double rangle) const override {
-        return new Rectangle(name, orig_x1, orig_y1, orig_x2, orig_y2, angle + rangle);
+    // Поворот прямоугольника (in-place)
+    void rotate(double deltaAngle) override {
+        double newAngle = angle + deltaAngle;
+        std::vector<std::pair<int, int>> verts = { {orig_x1, orig_y1}, {orig_x2, orig_y1}, {orig_x2, orig_y2}, {orig_x1, orig_y2} };
+        int centerX = (orig_x1 + orig_x2) / 2;
+        int centerY = (orig_y1 + orig_y2) / 2;
+        if (newAngle != 0) {
+            for (auto &p : verts)
+                p = rotatePoint(p.first, p.second, centerX, centerY, newAngle);
+        }
+        int minX = verts[0].first, maxX = verts[0].first, minY = verts[0].second, maxY = verts[0].second;
+        for (const auto &p : verts) {
+            minX = std::min(minX, p.first);
+            maxX = std::max(maxX, p.first);
+            minY = std::min(minY, p.second);
+            maxY = std::max(maxY, p.second);
+        }
+        if(minX < 0 || minY < 0 || maxX >= WIDTH || maxY >= HEIGHT)
+            throw ShapeException("Rectangle: поворот приводит к выходу за границы холста.");
+        angle = newAngle;
     }
     
-    Shape* translate(int dx, int dy) const override {
-        return new Rectangle(name, orig_x1 + dx, orig_y1 + dy, orig_x2 + dx, orig_y2 + dy, angle);
+    // Перемещение прямоугольника (in-place)
+    void translate(int dx, int dy) override {
+        int new_x1 = orig_x1 + dx, new_y1 = orig_y1 + dy, new_x2 = orig_x2 + dx, new_y2 = orig_y2 + dy;
+        std::vector<std::pair<int, int>> verts = { {new_x1, new_y1}, {new_x2, new_y1}, {new_x2, new_y2}, {new_x1, new_y2} };
+        int centerX = (new_x1 + new_x2) / 2;
+        int centerY = (new_y1 + new_y2) / 2;
+        if (angle != 0) {
+            for (auto &p : verts)
+                p = rotatePoint(p.first, p.second, centerX, centerY, angle);
+        }
+        int minX = verts[0].first, maxX = verts[0].first, minY = verts[0].second, maxY = verts[0].second;
+        for (const auto &p : verts) {
+            minX = std::min(minX, p.first);
+            maxX = std::max(maxX, p.first);
+            minY = std::min(minY, p.second);
+            maxY = std::max(maxY, p.second);
+        }
+        if(minX < 0 || minY < 0 || maxX >= WIDTH || maxY >= HEIGHT)
+            throw ShapeException("Rectangle: перевод приводит к выходу за границы холста.");
+        orig_x1 = new_x1; orig_y1 = new_y1; orig_x2 = new_x2; orig_y2 = new_y2;
     }
-
+    
     BoundingRect getBoundingRect() const override {
         std::vector<std::pair<int, int>> verts = { {orig_x1, orig_y1}, {orig_x2, orig_y1},
                                                    {orig_x2, orig_y2}, {orig_x1, orig_y2} };
@@ -295,10 +323,10 @@ public:
         int minX = verts[0].first, minY = verts[0].second;
         int maxX = verts[0].first, maxY = verts[0].second;
         for (const auto &p : verts) {
-            if (p.first < minX) minX = p.first;
-            if (p.second < minY) minY = p.second;
-            if (p.first > maxX) maxX = p.first;
-            if (p.second > maxY) maxY = p.second;
+            minX = std::min(minX, p.first);
+            minY = std::min(minY, p.second);
+            maxX = std::max(maxX, p.first);
+            maxY = std::max(maxY, p.second);
         }
         return { minX, minY, maxX, maxY };
     }
@@ -310,7 +338,7 @@ public:
 class DiagonalCross : public Shape, public IRotatable {
 private:
     int orig_x1, orig_y1, orig_x2, orig_y2;
-    double angle; // накопленный угол поворота
+    double angle;
 public:
     DiagonalCross(const std::string& name, int x1, int y1, int x2, int y2, double angle = 0)
         : Shape(name), orig_x1(x1), orig_y1(y1), orig_x2(x2), orig_y2(y2), angle(angle)
@@ -328,7 +356,6 @@ public:
     }    
     
     void draw(Canvas &canvas) const override {
-        // Вычисляем вершины исходного ограничивающего прямоугольника
         std::vector<std::pair<int, int>> verts = { {orig_x1, orig_y1}, {orig_x2, orig_y1}, {orig_x2, orig_y2}, {orig_x1, orig_y2} };
         int centerX = (orig_x1 + orig_x2) / 2;
         int centerY = (orig_y1 + orig_y2) / 2;
@@ -336,20 +363,54 @@ public:
             for (auto &p : verts)
                 p = rotatePoint(p.first, p.second, centerX, centerY, angle);
         }
-        // Рисуем диагонали
         Line("temp", verts[0].first, verts[0].second, verts[2].first, verts[2].second).draw(canvas);
         Line("temp", verts[1].first, verts[1].second, verts[3].first, verts[3].second).draw(canvas);
     }
     
-    // Поворот креста: обновляем угол
-    Shape* rotate(double rangle) const override {
-        return new DiagonalCross(name, orig_x1, orig_y1, orig_x2, orig_y2, angle + rangle);
+    // Вращение креста (in-place)
+    void rotate(double deltaAngle) override {
+        double newAngle = angle + deltaAngle;
+        std::vector<std::pair<int, int>> verts = { {orig_x1, orig_y1}, {orig_x2, orig_y1}, {orig_x2, orig_y2}, {orig_x1, orig_y2} };
+        int centerX = (orig_x1 + orig_x2) / 2;
+        int centerY = (orig_y1 + orig_y2) / 2;
+        if (newAngle != 0) {
+            for (auto &p : verts)
+                p = rotatePoint(p.first, p.second, centerX, centerY, newAngle);
+        }
+        int minX = verts[0].first, maxX = verts[0].first, minY = verts[0].second, maxY = verts[0].second;
+        for (const auto &p : verts) {
+            minX = std::min(minX, p.first);
+            maxX = std::max(maxX, p.first);
+            minY = std::min(minY, p.second);
+            maxY = std::max(maxY, p.second);
+        }
+        if(minX < 0 || minY < 0 || maxX >= WIDTH || maxY >= HEIGHT)
+            throw ShapeException("DiagonalCross: поворот приводит к выходу за границы холста.");
+        angle = newAngle;
     }
     
-    Shape* translate(int dx, int dy) const override {
-        return new DiagonalCross(name, orig_x1 + dx, orig_y1 + dy, orig_x2 + dx, orig_y2 + dy, angle);
+    // Перемещение креста (in-place)
+    void translate(int dx, int dy) override {
+        int new_x1 = orig_x1 + dx, new_y1 = orig_y1 + dy, new_x2 = orig_x2 + dx, new_y2 = orig_y2 + dy;
+        std::vector<std::pair<int, int>> verts = { {new_x1, new_y1}, {new_x2, new_y1}, {new_x2, new_y2}, {new_x1, new_y2} };
+        int centerX = (new_x1 + new_x2) / 2;
+        int centerY = (new_y1 + new_y2) / 2;
+        if (angle != 0) {
+            for (auto &p : verts)
+                p = rotatePoint(p.first, p.second, centerX, centerY, angle);
+        }
+        int minX = verts[0].first, maxX = verts[0].first, minY = verts[0].second, maxY = verts[0].second;
+        for (const auto &p : verts) {
+            minX = std::min(minX, p.first);
+            maxX = std::max(maxX, p.first);
+            minY = std::min(minY, p.second);
+            maxY = std::max(maxY, p.second);
+        }
+        if(minX < 0 || minY < 0 || maxX >= WIDTH || maxY >= HEIGHT)
+            throw ShapeException("DiagonalCross: перевод приводит к выходу за границы холста.");
+        orig_x1 = new_x1; orig_y1 = new_y1; orig_x2 = new_x2; orig_y2 = new_y2;
     }
-
+    
     BoundingRect getBoundingRect() const override {
         std::vector<std::pair<int, int>> verts = { {orig_x1, orig_y1}, {orig_x2, orig_y1},
                                                    {orig_x2, orig_y2}, {orig_x1, orig_y2} };
@@ -362,10 +423,10 @@ public:
         int minX = verts[0].first, minY = verts[0].second;
         int maxX = verts[0].first, maxY = verts[0].second;
         for (const auto &p : verts) {
-            if (p.first < minX) minX = p.first;
-            if (p.second < minY) minY = p.second;
-            if (p.first > maxX) maxX = p.first;
-            if (p.second > maxY) maxY = p.second;
+            minX = std::min(minX, p.first);
+            minY = std::min(minY, p.second);
+            maxX = std::max(maxX, p.first);
+            maxY = std::max(maxY, p.second);
         }
         return { minX, minY, maxX, maxY };
     }
@@ -431,7 +492,6 @@ public:
         if (mouth_x2 > x2 || mouth_y > y2)
             throw ShapeException("Head: рот некорректно расположен.");
         
-        // Отрисовка частей лица
         Rectangle("temp", hat_x1, hat_y1, hat_x2, hat_y2).draw(canvas);
         Line("temp", hat_x1 - 1, hat_y2, hat_x2 + 1, hat_y2).draw(canvas);
         Rectangle("temp", head_x1, head_y1, head_x2, head_y2).draw(canvas);
@@ -443,17 +503,13 @@ public:
         Line("temp", mouth_x1, mouth_y, mouth_x2, mouth_y).draw(canvas);
     }
     
-    // Поворот головы вокруг её центра
-    Shape* rotate(double rangle) const override {
-        int centerX = (orig_x1 + orig_x2) / 2;
-        int centerY = (orig_y1 + orig_y2) / 2;
-        auto np1 = rotatePoint(orig_x1, orig_y1, centerX, centerY, rangle);
-        auto np2 = rotatePoint(orig_x2, orig_y2, centerX, centerY, rangle);
-        return new Head(name, np1.first, np1.second, np2.first, np2.second);
-    }
-    
-    Shape* translate(int dx, int dy) const override {
-        return new Head(name, orig_x1 + dx, orig_y1 + dy, orig_x2 + dx, orig_y2 + dy);
+    // Перемещение головы (in-place)
+    void translate(int dx, int dy) override {
+        int new_x1 = orig_x1 + dx, new_y1 = orig_y1 + dy, new_x2 = orig_x2 + dx, new_y2 = orig_y2 + dy;
+        if(new_x1 < 0 || new_x1 >= WIDTH || new_y1 < 0 || new_y1 >= HEIGHT ||
+           new_x2 < 0 || new_x2 >= WIDTH || new_y2 < 0 || new_y2 >= HEIGHT)
+            throw ShapeException("Head: перевод приводит к выходу за границы холста.");
+        orig_x1 = new_x1; orig_y1 = new_y1; orig_x2 = new_x2; orig_y2 = new_y2;
     }
 
     BoundingRect getBoundingRect() const override {
@@ -485,7 +541,7 @@ int main() {
         std::cout << "9. Вывести все фигуры и их координаты\n";
         std::cout << "Выберите опцию: ";
         std::cin >> choice;
-        std::cin.ignore(); // очистка остатка строки
+        std::cin.ignore();
         
         try {
             if (choice == 0) {
@@ -559,19 +615,29 @@ int main() {
                 std::string name;
                 int dx, dy;
                 std::cin >> name >> dx >> dy;
-                Shape* oldShape = canvas.getShape(name);
-                Shape* movedShape = oldShape->translate(dx, dy);
-                canvas.updateShape(movedShape);
+                Shape* shape = canvas.getShape(name);
+                shape->translate(dx, dy);
             }
             else if (choice == 8) {
                 std::cout << "Введите параметры для поворота (имя angle): ";
                 std::string name;
                 double angle;
                 std::cin >> name >> angle;
-                Shape* oldShape = canvas.getShape(name);
-                Shape* rotatedShape = oldShape->rotate(angle);
-                canvas.updateShape(rotatedShape);
-            } else {
+                Shape* shape = canvas.getShape(name);
+                IRotatable* rotatable = dynamic_cast<IRotatable*>(shape);
+                if (rotatable) {
+                    rotatable->rotate(angle);
+                } else {
+                    throw ShapeException("Данная фигура не поддерживает вращение");
+                }
+            }
+            else if (choice == 9) {
+                canvas.listShapes();
+                std::cout << "Нажмите Enter для продолжения...";
+                std::cin.ignore();
+                std::getchar();
+            }
+            else {
                 std::cout << "Неправильный выбор!\n";
             }
         }
