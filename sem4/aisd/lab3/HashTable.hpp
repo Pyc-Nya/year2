@@ -17,9 +17,6 @@ template<typename T,
 >
 class HashTable {
 public:
-    using value_type     = T;                    // тип хранимого ключа
-    using hasher         = Hash;                 // тип хеш‑функции
-    using key_equal      = KeyEqual;             // тип функции сравнения ключей
     using const_iterator = typename std::list<T>::const_iterator; // итератор по ключам
 
     // Конструктор: задать число бакетов и максимальную мощность множества
@@ -32,6 +29,7 @@ public:
 
     // Основные методы:
     bool insert(const T& key);     // вставить ключ, если нет и не превышен лимит
+    bool insert2(const T& key);     // вставить ключ, если нет и не превышен лимит
     bool contains(const T& key) const; // проверить наличие ключа
     bool erase(const T& key);      // удалить ключ, если найден
     void clear() noexcept;         // очистить все ключи
@@ -64,7 +62,7 @@ private:
 
     void rehash(size_t new_buckets);  // перераспределение по новому числу бакетов
     typename std::list<T>::iterator findEntry(const T& key);       // поиск в entries_
-    typename std::list<T>::const_iterator findEntry(const T& key) const; // константная версия
+    const_iterator findEntry(const T& key) const; // константная версия
 };
 
 // Вспомогательная функция: извлечь и отсортировать все ключи
@@ -78,8 +76,10 @@ static void ensure_sorted(const HashTable<T,H,E>& ht, std::vector<T>& out) {
 // insert — вставить ключ, если нет и если размер меньше max_size_
 template<typename T, typename H, typename E>
 bool HashTable<T,H,E>::insert(const T& key) {
-    if (contains(key))        // если ключ уже есть
+    if (contains(key))  {  // если ключ уже есть
+        std::cout << "Ошибка: данный элемент уже присутствует во множестве\n";
         return false;
+    }      
     if (size_ >= max_size_) { // если достигнут лимит мощности
         std::cout << "Ошибка: множество переполнено (макс. мощность = "
                   << max_size_ << ")\n";
@@ -93,6 +93,20 @@ bool HashTable<T,H,E>::insert(const T& key) {
         rehash(buckets_ * 2);         // — увеличить число бакетов вдвое
     return true;
 }
+
+// Реализация методов:
+// insert — вставить ключ, если нет и если размер меньше max_size_
+template<typename T, typename H, typename E>
+bool HashTable<T,H,E>::insert2(const T& key) {
+    entries_.push_back(key);           // добавить к общему списку ключей
+    size_t h = hasher_(key) % buckets_; // вычислить индекс бакета
+    table_[h].push_back(key);          // вставить в цепочку коллизий
+    ++size_;                           // увеличить счётчик
+    if (size_ > buckets_)              // если load factor > 1
+        rehash(buckets_ * 2);         // — увеличить число бакетов вдвое
+    return true;
+}
+
 
 // erase — удалить ключ
 template<typename T, typename H, typename E>
@@ -158,7 +172,7 @@ HashTable<T,H,E> HashTable<T,H,E>::MERGE(const HashTable& other) const {
                v2.begin(), v2.end(),
                std::back_inserter(result));
     HashTable ht(v1.size() + v2.size(), max_size_);
-    for (const T& x : result) ht.insert(x);
+    for (const T& x : result) ht.insert2(x);
     return ht;
 }
 
