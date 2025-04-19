@@ -77,12 +77,12 @@ static void ensure_sorted(const HashTable<T,H,E>& ht, std::vector<T>& out) {
 template<typename T, typename H, typename E>
 bool HashTable<T,H,E>::insert(const T& key) {
     if (contains(key))  {  // если ключ уже есть
-        std::cout << "Ошибка: данный элемент уже присутствует во множестве\n";
+        // std::cout << "Ошибка: данный элемент уже присутствует во множестве\n";
         return false;
     }      
     if (size_ >= max_size_) { // если достигнут лимит мощности
-        std::cout << "Ошибка: множество переполнено (макс. мощность = "
-                  << max_size_ << ")\n";
+        // std::cout << "Ошибка: множество переполнено (макс. мощность = "
+        //           << max_size_ << ")\n";
         return false;
     }
     entries_.push_back(key);           // добавить к общему списку ключей
@@ -186,7 +186,7 @@ HashTable<T,H,E> HashTable<T,H,E>::CONCAT(const HashTable& other) const {
     result.insert(result.end(), v1.begin(), v1.end()); // добавить все из v1
     result.insert(result.end(), v2.begin(), v2.end()); // затем все из v2
     HashTable ht(v1.size() + v2.size(), max_size_);
-    for (const T& x : result) ht.insert(x);
+    for (const T& x : result) ht.insert2(x);
     return ht;
 }
 
@@ -200,7 +200,7 @@ HashTable<T,H,E> HashTable<T,H,E>::ERASE(size_t p1, size_t p2) const {
     HashTable ht(size_ - (p2 - p1), max_size_);
     for (size_t i = 0; i < v.size(); ++i) {
         if (i < p1 || i >= p2)
-            ht.insert(v[i]);             // вставлять только вне диапазона
+            ht.insert2(v[i]);             // вставлять только вне диапазона
     }
     return ht;
 }
