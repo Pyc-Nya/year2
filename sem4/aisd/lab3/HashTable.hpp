@@ -124,7 +124,9 @@ bool HashTable<T,H,E>::erase(const T& key) {
 // contains — проверить наличие ключа
 template<typename T, typename H, typename E>
 bool HashTable<T,H,E>::contains(const T& key) const {
-    return findEntry(key) != entries_.end();
+    size_t h = hasher_(key) % buckets_;             // вычисляем бакет
+    const auto& chain = table_[h];                  // ссылка на список коллизий
+    return std::find(chain.begin(), chain.end(), key) != chain.end();
 }
 
 // clear — очистить все ключи

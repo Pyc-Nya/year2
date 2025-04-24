@@ -42,7 +42,7 @@ int main() {
         return 1;
     }
 
-    for (size_t sz = 10; sz <= 1000; sz += 1) {
+    for (size_t sz = 10; sz <= 600; sz += 1) {
         for (int repeat = 0; repeat < 10; ++repeat) {
             // Генерация двух множеств случайных ключей
             auto keys1 = generate_keys(sz);
