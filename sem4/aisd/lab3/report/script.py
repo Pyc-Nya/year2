@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import collections
 
 # Путь к лог-файлу
-log_file = r'/home/pyc_nya/projects/vuz2/sem4/aisd/lab3/result.log'
+log_file = r"C:\projects\year2\sem4\aisd\lab3\result.log"
 
 # Структура для хранения данных: {operation: {size: [times]}}
 data = collections.defaultdict(lambda: collections.defaultdict(list))
@@ -31,4 +31,4 @@ plt.grid(True)
 plt.tight_layout()
 
 # Сохранение в PNG-файл
-plt.savefig(r'/home/pyc_nya/projects/vuz2/sem4/aisd/lab3/graph.png', dpi=300)
+plt.savefig(r"C:\projects\year2\sem4\aisd\lab3\report\graph.png", dpi=300)
