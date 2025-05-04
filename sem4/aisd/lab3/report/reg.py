@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 from typing import Final, TypedDict, List
 
 # ---------- настройка ----------
-LOG_PATH:    Final[str] = r"C:\projects\year2\sem4\aisd\lab3\result.log"
-OUT_DIR:     Final[str] = r"C:\projects\year2\sem4\aisd\lab3\report\report_results"
+LOG_PATH:    Final[str] = r'/home/pyc_nya/projects/vuz2/sem4/aisd/lab3/result.log'
+OUT_DIR:     Final[str] = r'/home/pyc_nya/projects/vuz2/sem4/aisd/lab3/report/report_results'
 EPS_RATIO:   Final[float] = 0.02
 PNG_WIDTH:   Final[int] = 600         # в пикселях
 # --------------------------------
