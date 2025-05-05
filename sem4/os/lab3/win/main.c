@@ -3,14 +3,12 @@
 
 #define N 100000000     
 #define B (10 * 331131)
-#define THREAD_COUNT 4 
+#define THREAD_COUNT 10
 // Я ПИСАЛ КОММЕНТАРИИ И КОД ЛИЧНО          
 
 double global_sum = 0.0;     
 /** 
  * массив состояний потоков, который помечает, работает ли i-ый поток в данный момент (по аналогии с первой лабораторной)
- * читает - main()
- * обновляет - worker()
  */             
 BOOL worker_active[THREAD_COUNT] = {0}; 
 /**
@@ -95,6 +93,10 @@ int main() {
         hThreads[i] = CreateThread(NULL, 0, Worker, &params[i], CREATE_SUSPENDED, NULL);
     }
 
+    LARGE_INTEGER freq, t_start, t_end;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&t_start);
+
     // запускаем потоки
     for (size_t i = 0; i < THREAD_COUNT; i++) {
         ResumeThread(hThreads[i]);
@@ -132,6 +134,10 @@ int main() {
         Sleep(1); 
     }
 
+    QueryPerformanceCounter(&t_end);
+    double elapsed = (double)(t_end.QuadPart - t_start.QuadPart)
+                     / (double)freq.QuadPart * 1000;
+
     // вот здесь наши потоки уже закончили обработку всего интервала N, но они находятся в состоянии Suspend
     // так что надо освободить ресурсы, продолжить потоки и передать им такие данные, чтобы они вышли из while(1)
     for (int i = 0; i < THREAD_COUNT; ++i) {
@@ -147,5 +153,6 @@ int main() {
     CloseHandle(hMutex);
 
     printf("Pi = %.15f\n", global_sum / (double)N);
+    printf("Threads: %d, Time: %.6f ms\n", THREAD_COUNT, elapsed);
     return 0;
 }
