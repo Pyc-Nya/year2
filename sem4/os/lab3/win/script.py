@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Путь к файлу с логами
-LOG_FILE = r'C:\projects\year2\sem4\os\lab3\win\result.log'
+LOG_FILE = r'C:\projects\year2\sem4\os\lab3\win\result2.log'
 
 # Шаблон для разбора строк вида "Threads: <T>, Time: <sec>"
 pattern = re.compile(r'Threads:\s*(\d+),\s*Time:\s*([\d.]+)')
