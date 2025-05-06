@@ -13,7 +13,7 @@ if ERRORLEVEL 1 (
 )
 
 :: Запуск для разных чисел потоков
-for %%T in (1 2 4 8 12 16 20 22 24 30 40 50 60 70 80) do (
+for %%T in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25) do (
     echo Running with %%T threads...
     for /L %%I in (1,1,10) do (
         app.exe %%T >> result.log
